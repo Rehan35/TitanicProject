@@ -78,6 +78,76 @@ public class Titanic {
             throw new IllegalArgumentException("Invalid attribute: " + attribute);
         }
 
+//        sumResidualGradients[0] += -2 * (survivedValue - logisticFunctionValue) * (logisticFunctionValue * (1 - logisticFunctionValue));
+//        sumResidualGradients[1] += -2 * (survivedValue - logisticFunctionValue) * (logisticFunctionValue * (1 - logisticFunctionValue))
+//                * ((passenger.pclass().ordinal() + 1 - 2.305)/0.836869427119643);
+//        sumResidualGradients[2] += -2 * (survivedValue - logisticFunctionValue) * (logisticFunctionValue * (1 - logisticFunctionValue))
+//                * ((passenger.sexNumerical() - 0.2925)/0.956863749597673);
+//        sumResidualGradients[3] += -2 * (survivedValue - logisticFunctionValue) * (logisticFunctionValue * (1 - logisticFunctionValue))
+//                * ((passenger.age() - 29.8711459968603)/14.5443008388913);
+//        sumResidualGradients[4] += -2 * (survivedValue - logisticFunctionValue) * (logisticFunctionValue * (1 - logisticFunctionValue))
+//                * ((passenger.siblings() - 0.51875)/1.06351411148685);
+//        sumResidualGradients[5] += -2 * (survivedValue - logisticFunctionValue) * (logisticFunctionValue * (1 - logisticFunctionValue))
+//                * ((passenger.parents() - 0.37375)/0.801476070987436);
+//        sumResidualGradients[6] += -2 * (survivedValue - logisticFunctionValue) * (logisticFunctionValue * (1 - logisticFunctionValue))
+//                * ((passenger.fare() - 33.03853575)/51.5249501775987);
+//        sumResidualGradients[7] += -2 * (survivedValue - logisticFunctionValue) * (logisticFunctionValue * (1 - logisticFunctionValue))
+//                * ((passenger.embarkedNumerical() - 1.37125)/0.647261246639834);
+
+        public double sexStandardized() {
+            return (sexNumerical() - 0.2925)/0.956863749597673;
+        }
+
+        public double pClassStandardized() {
+            return ((double) (pclass.ordinal() + 1) - 2.305)/0.836869427119643;
+        }
+
+        public double embarkedStandardized() {
+            return (embarkedNumerical() - 1.37125)/0.647261246639834;
+        }
+
+        public double ageStandardized() {
+            return (age() - 29.8711459968603)/14.5443008388913;
+        }
+
+        public double siblingsStandardized() {
+            return (siblings() - 0.51875)/1.06351411148685;
+        }
+
+        public double parentsStandardized() {
+            return (parents() - 0.37375)/0.801476070987436;
+        }
+
+        public double fareStandardized() {
+            return (fare() - 33.03853575)/51.5249501775987;
+        }
+
+        public double sexNumerical() {
+            int sexValue = -1;
+
+            if (sex() == Titanic.Sex.FEMALE) {
+                sexValue = -1;
+            } else {
+                sexValue = 1;
+            }
+
+            return sexValue;
+        }
+
+        public double embarkedNumerical() {
+            int embarkedValue = 1;
+
+            if (port() == Titanic.Port.CHERBOURG) {
+                embarkedValue = 2;
+            } else if (port() == Titanic.Port.SOUTHAMPTON) {
+                embarkedValue = 1;
+            } else if (port() == Titanic.Port.QUEENSTOWN) {
+                embarkedValue = 3;
+            }
+
+            return embarkedValue;
+        }
+
         public double get(Attribute attribute) {
             // Returns the value of the specified attribute for this passenger.
             switch(attribute) {
@@ -90,6 +160,72 @@ public class Titanic {
                 case FARE:     return this.fare;
             }
             throw new IllegalArgumentException("Invalid attribute: " + attribute);
+        }
+
+        public double distance(Passenger passenger, TitanicScoring.DistanceFunc func) {
+            double sum = 0;
+            switch (func) {
+                case L1:
+                    sum += Math.pow(Math.abs((passenger.embarkedNumerical() - embarkedNumerical())), 1);
+                    sum += Math.pow(Math.abs((passenger.pclass.ordinal() + 1 - pclass.ordinal() + 1)), 1);
+                    sum += Math.pow(Math.abs((passenger.sexNumerical() - sexNumerical())), 1);
+                    sum += Math.pow(Math.abs((passenger.age() - age())), 1);
+                    sum += Math.pow(Math.abs((passenger.siblings() - siblings())), 1);
+                    sum += Math.pow(Math.abs((passenger.parents() - parents())), 1);
+                    sum += Math.pow(Math.abs((passenger.fare() - fare())), 1);
+                    break;
+                case L2:
+                    sum += Math.pow((passenger.embarkedNumerical() - embarkedNumerical()), 2);
+                    sum += Math.pow((passenger.pclass.ordinal() + 1 - pclass.ordinal() + 1), 2);
+                    sum += Math.pow((passenger.sexNumerical() - sexNumerical()), 2);
+                    sum += Math.pow((passenger.age() - age()), 2);
+                    sum += Math.pow((passenger.siblings() - siblings()), 2);
+                    sum += Math.pow((passenger.parents() - parents()), 2);
+                    sum += Math.pow((passenger.fare() - fare()), 2);
+                    break;
+                case L0:
+                    if (embarkedNumerical() != passenger.embarkedNumerical()) {
+                        sum += 1;
+                    }
+                    if (pclass.ordinal() != passenger.pclass.ordinal()) {
+                        sum += 1;
+                    }
+                    if (sexNumerical() != passenger.sexNumerical()) {
+                        sum += 1;
+                    }
+                    if (Math.abs(age() - passenger.age()) > 5) {
+                        sum += 1;
+                    }
+                    if (Math.abs(parents() - passenger.parents()) > 1) {
+                        sum += 1;
+                    }
+                    if (Math.abs(siblings() - passenger.siblings()) > 1) {
+                        sum += 1;
+                    }
+                    if (Math.abs(fare() - passenger.fare()) > 5) {
+                        sum += 1;
+                    }
+                case F:
+                    sum += Math.pow((passenger.embarkedNumerical() - embarkedNumerical()), 2);
+                    sum += Math.pow((passenger.pclass.ordinal() + 1 - pclass.ordinal() + 1), 2);
+                    sum += Math.pow((passenger.sexNumerical() - sexNumerical()), 2);
+                    sum += Math.pow((passenger.age() - age()), 2);
+                    sum += Math.pow((passenger.siblings() - siblings()), 2);
+                    sum += Math.pow((passenger.parents() - parents()), 2);
+                    sum += Math.pow((passenger.fare() - fare()), 2);
+                    sum = Math.sqrt(sum);
+                    break;
+                case CD:
+                    double passengerMagnitude = Math.sqrt(Math.pow(passenger.embarkedNumerical(), 2) + Math.pow(passenger.pclass.ordinal(), 2)
+                            + Math.pow(passenger.sexNumerical(), 2) + Math.pow(passenger.age(), 2) + Math.pow(passenger.siblings(), 2)
+                            + Math.pow(passenger.parents(), 2) + Math.pow(passenger.fare(), 2));
+                    double selfMagnitude = Math.sqrt(Math.pow(embarkedNumerical(), 2) + Math.pow(pclass.ordinal(), 2)
+                            + Math.pow(sexNumerical(), 2) + Math.pow(age(), 2) + Math.pow(siblings(), 2)
+                            + Math.pow(parents(), 2) + Math.pow(fare(), 2));
+                    sum = 1.0 - (passenger.embarkedNumerical() * embarkedNumerical() + passenger.pclass.ordinal() * pclass.ordinal() + passenger.sexNumerical() * sexNumerical()
+                            + passenger.age() * age() + passenger.siblings() * siblings() + passenger.parents() * parents() + passenger.fare() * fare())/(passengerMagnitude * selfMagnitude);
+            }
+            return sum;
         }
     }
 }

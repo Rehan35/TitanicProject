@@ -4,7 +4,7 @@ public class TitanicTrainingData {
     public static final boolean DIED = true;
     public static final boolean SURVIVED = false;
 
-    public static final Titanic.Passenger[] passengers = new Titanic.Passenger[] {
+    public static Titanic.Passenger[] passengers = new Titanic.Passenger[] {
         new Titanic.Passenger(1, "Braund, Mr. Owen Harris",
             DIED,
             Titanic.Port.SOUTHAMPTON,
